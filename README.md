@@ -17,7 +17,7 @@ virtualenv -p python2.7 .env
 source .env/bin/activate
 pip install -U -r requirements.txt
 aws s3 cp s3://didone-spark/drivers.zip libs/
-aws s3 cp s3://didone-spark/jars.zip libs/
+aws s3 cp s3://didone-spark/java.zip libs/
 aws s3 cp s3://didone-spark/python.zip libs/
 ```
 
@@ -30,8 +30,6 @@ DEPLOY_BUCKET=didone-spark-sam
 aws s3 mb "s3://${DEPLOY_BUCKET}"
 # Build lambdas
 sam build
-# Build layers (if necessery)
-./build_layer.sh
 # Change the runtime python2.7 to 'provided'
 sed 's+ python2.7+ provided+g' template.yaml > template.tmp
 # Package and generate the template for cloudformation
@@ -44,13 +42,12 @@ You can use the AWS *Cloudformation* to manage your deployments as **Application
 
 ```sh
 # Create stack
-aws cloudformation create-stack --stack-name app-spark --template-body file://packaged.yaml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
+aws cloudformation create-stack --stack-name pyspark-app --template-body file://packaged.yaml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
 # View stack
-aws cloudformation describe-stacks --stack-name app-spark --output table
+aws cloudformation describe-stacks --stack-name pyspark-app --output table
 ```
-
 
 ```sh
 # Remove stack
-aws cloudformation delete-stack --stack-name app-spark
+aws cloudformation delete-stack --stack-name pyspark-app
 ```
