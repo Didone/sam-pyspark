@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless PySpark
 Parameters:
+  AccessKey:
+    Type: String
+    Description: AWS Access Key
+  SecretKey:
+    Type: String
+    Description: AWS Secret Key
   LogLevel:
     Type: String
     Description: INFO, DEBUG, ERROR or WARNING
@@ -49,3 +55,5 @@ Resources:
       Environment:
         Variables:
           LOG_LEVEL: !Ref LogLevel
+          ACCESS_KEY: !Ref AccessKey
+          SECRET_KEY: !Ref SecretKey

@@ -24,7 +24,15 @@ cd ../../../
 # Change the runtime python2.7 to 'provided'
 sed 's+ python2.7+ provided+g' template.yaml > template.tmp
 # Package and generate the template for cloudformation
-sam package --template template.tmp --output-template-file packaged.yaml --s3-bucket $DEPLOY_BUCKET
+sam package \
+    --template template.tmp \
+    --output-template-file packaged.yaml \
+    --s3-bucket $DEPLOY_BUCKET
 #Deploy
-aws cloudformation create-stack --stack-name $APP_NAME --template-body file://packaged.yaml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
+aws cloudformation create-stack \
+    --stack-name $APP_NAME \
+    --template-body file://packaged.yaml \
+    --tags Key=project,Value=pyspark \
+    --parameters ParameterKey=AccessKey,ParameterValue=$AWS_ACCESS_KEY_ID ParameterKey=SecretKey,ParameterValue=$AWS_SECRET_ACCESS_KEY
+    --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
 aws cloudformation describe-stacks --stack-name $APP_NAME --output table

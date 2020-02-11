@@ -13,4 +13,5 @@ def run(event, spark):
     """ Staring Function """
     LOGGER.info(spark.version)
     LOGGER.debug(event)
-    return event
+    df = spark.read.format("csv").load(event.get('path'))
+    return df.count()
