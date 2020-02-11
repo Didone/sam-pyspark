@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless PySpark
 Parameters:
+  AccessKey:
+    Type: String
+    Description: AWS Access Key
+  SecretKey:
+    Type: String
+    Description: AWS Secret Key
   LogLevel:
     Type: String
     Description: INFO, DEBUG, ERROR or WARNING
@@ -33,7 +39,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: Spark Lambda Runtime
-      CodeUri: s3://didone-spark-sam/ba359bdb55e77e0df8e08bcebc42a045
+      CodeUri: s3://didone-spark-sam/9ddc41dcbc51e61398b59ea17e29f9fc
       Handler: job.run
       Runtime: provided
       Timeout: 900
@@ -48,3 +54,7 @@ Resources:
         Variables:
           LOG_LEVEL:
             Ref: LogLevel
+          ACCESS_KEY:
+            Ref: AccessKey
+          SECRET_KEY:
+            Ref: SecretKey

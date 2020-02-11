@@ -33,6 +33,5 @@ aws cloudformation create-stack \
     --stack-name $APP_NAME \
     --template-body file://packaged.yaml \
     --tags Key=project,Value=pyspark \
-    --parameters ParameterKey=AccessKey,ParameterValue=$AWS_ACCESS_KEY_ID ParameterKey=SecretKey,ParameterValue=$AWS_SECRET_ACCESS_KEY
+    --parameters ParameterKey=AccessKey,ParameterValue=$AWS_ACCESS_KEY_ID ParameterKey=SecretKey,ParameterValue=$AWS_SECRET_ACCESS_KEY\
     --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
-aws cloudformation describe-stacks --stack-name $APP_NAME --output table
