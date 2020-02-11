@@ -22,16 +22,13 @@ os.environ["SPARK_CONF_DIR"] = "{0}/conf".format(SPARK_HOME)
 sys.path.append('{}/python/lib/py4j-0.10.7-src.zip'.format(SPARK_HOME))
 sys.path.append('{}/python/'.format(SPARK_HOME))
 sys.path.append('{}/{}/'.format(os.environ.get('LAMBDA_TASK_ROOT'),os.environ.get('AWS_LAMBDA_FUNCTION_NAME')))
-print('_HANDLER',os.environ.get('_HANDLER'))
-print('AWS_LAMBDA_FUNCTION_NAME',os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
-print('AWS_LAMBDA_FUNCTION_MEMORY_SIZE',os.environ.get('AWS_LAMBDA_FUNCTION_MEMORY_SIZE'))
-print('LAMBDA_TASK_ROOT',os.environ.get('LAMBDA_TASK_ROOT'))
-print('LAMBDA_RUNTIME_DIR',os.environ.get('LAMBDA_RUNTIME_DIR'))
-print('SPARK_HOME',os.environ.get('SPARK_HOME'))
-print('sys.path',sys.path)
-# Python External libs
+sys.path.append('{}/'.format(os.environ.get('LAMBDA_RUNTIME_DIR')))
+sys.path.append('{}/{}/'.format(os.environ.get('LAMBDA_RUNTIME_DIR'),os.environ.get('AWS_LAMBDA_FUNCTION_NAME')))
+sys.path.append('{}/'.format(os.environ.get('LAMBDA_TASK_ROOT')))
 import requests
 from pyspark.sql import SparkSession
+exec "import %s" % str(os.environ.get('_HANDLER')).split('.')[0]
+exec "runner = %s" % os.environ.get('_HANDLER')
 
 # Inicializa o contexto Spark
 def create_spark_context():
@@ -79,8 +76,6 @@ def event_loop():
     AWS Lambda Event loop
     """
     spark = create_spark_context()
-    exec "import %s" % str(os.environ.get('_HANDLER')).split('.')[0]
-    exec "runner = %s" % os.environ.get('_HANDLER')
     while True:
         req = _next_request()
         try:
