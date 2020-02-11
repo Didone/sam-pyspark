@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless PySpark
+Parameters:
+  LogLevel:
+    Type: String
+    Description: INFO, DEBUG, ERROR or WARNING
+    Default: INFO
+Globals:
+  Function:
+    Tags:
+      AppName: pyspark
+
+Resources:
+  SparkRuntime:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: spark-runtime
+      Description: Spark Runtime
+      ContentUri: s3://didone-spark/spark.zip
+      CompatibleRuntimes:
+        - python2.7
+      RetentionPolicy: Delete
+  SparkDrivers:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: spark-drivers
+      Description: Spark Extra Drivers
+      ContentUri: s3://didone-spark/drivers.zip
+      CompatibleRuntimes:
+        - python2.7
+      RetentionPolicy: Delete
+
+  SparkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Spark Lambda Runtime
+      CodeUri: functions
+      Handler: job.run
+      Runtime: python2.7
+      Timeout: 900
+      Layers:
+        - !Ref SparkRuntime
+        - !Ref SparkDrivers
+      MemorySize: 512
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Environment:
+        Variables:
+          LOG_LEVEL: !Ref LogLevel

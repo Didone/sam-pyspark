@@ -1,0 +1,96 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+Spark on Lambdas
+@author: didone@live.com
+"""
+import json
+import os
+import sys
+import traceback
+# Spark Env
+SPARK_HOME="/opt"
+URL = "http://{}/2018-06-01/runtime/invocation".format(os.environ.get('AWS_LAMBDA_RUNTIME_API'))
+os.environ["SPARK_HOME"] = SPARK_HOME
+os.environ["SPARK_LOCAL_IP"] = "127.0.0.1"
+os.environ["SPARK_DAEMON_CLASSPATH"] = "{0}/conf/:{0}/jars/*:{0}/libs/*".format(SPARK_HOME)
+os.environ["SPARK_DIST_CLASSPATH"] = "{0}/conf/:{0}/jars/*:{0}/libs/*".format(SPARK_HOME)
+os.environ["CLASSPATH"] = "{0}/conf/:{0}/jars/*:{0}/libs/*".format(SPARK_HOME)
+os.environ["PYTHONSTARTUP"] = "{0}/python/pyspark/shell.py".format(SPARK_HOME)
+os.environ["SPARK_CONF_DIR"] = "{0}/conf".format(SPARK_HOME)
+# Python Env
+sys.path.append('{}/python/lib/py4j-0.10.7-src.zip'.format(SPARK_HOME))
+sys.path.append('{}/python/'.format(SPARK_HOME))
+sys.path.append('{}/{}/'.format(os.environ.get('LAMBDA_RUNTIME_DIR'),os.environ.get('AWS_LAMBDA_FUNCTION_NAME')))
+print('_HANDLER',os.environ.get('_HANDLER'))
+print('AWS_LAMBDA_FUNCTION_NAME',os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
+print('AWS_LAMBDA_FUNCTION_MEMORY_SIZE',os.environ.get('AWS_LAMBDA_FUNCTION_MEMORY_SIZE'))
+print('LAMBDA_TASK_ROOT',os.environ.get('LAMBDA_TASK_ROOT'))
+print('LAMBDA_RUNTIME_DIR',os.environ.get('LAMBDA_RUNTIME_DIR'))
+print('SPARK_HOME',os.environ.get('SPARK_HOME'))
+# Python External libs
+import requests
+from pyspark.sql import SparkSession
+
+# Inicializa o contexto Spark
+def create_spark_context():
+    """
+    Create Spark Context
+    """
+    spark_build = SparkSession.builder.master("local[*]")
+    spark_build.config("spark.hadoop.fs.s3a.access.key", os.environ.get('AWS_ACCESS_KEY_ID'))
+    spark_build.config("spark.hadoop.fs.s3a.secret.key", os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    spark_build.config("spark.hadoop.fs.s3a.session.token", os.environ.get('AWS_SESSION_TOKEN'))
+    return spark_build.getOrCreate()
+
+# Funcoes utilizadas pela lambda handler
+def _next_request():
+    """
+    Get next lambda request
+    """
+    req = requests.request("GET", "{}/next".format(URL))
+    req_id = req.headers.get("Lambda-Runtime-Aws-Request-Id")
+    return {"requests_id": req_id, "content": json.loads(req.content)}
+
+def _send_response(invocation_id, res_payload):
+    """
+    Send process response, if succeeded
+    """
+    res_header = {'cache-control': "no-cache"}
+    res_data = json.dumps(res_payload)
+    res_url = "{}/{}/response".format(URL, invocation_id)
+    return requests.request("POST", res_url, data=res_data, headers=res_header)
+
+def _send_error(invocation_id, exception):
+    """
+    Send process response, if any error
+    """
+    err_header = {'cache-control': "no-cache", "Lambda-Runtime-Function-Error-Type": "Unhandled"}
+    type_, value_, traceback_ = sys.exc_info()
+    err_trace = traceback.format_exception(type_, value_, traceback_)
+    err_msg = "{}\n{}".format(exception.message, err_trace)
+    err_data = json.dumps({"errorMessage":err_msg, "errorType": "InvalidEventDataException"})
+    err_url = "{}/{}/error".format(URL, invocation_id)
+    return requests.request("POST", err_url, data=err_data, headers=err_header)
+
+def event_loop():
+    """
+    AWS Lambda Event loop
+    """
+    spark = create_spark_context()
+    exec "import %s" % str(os.environ.get('_HANDLER')).split('.')[0]
+    exec "runner = %s" % os.environ.get('_HANDLER')
+    while True:
+        req = _next_request()
+        try:
+            _send_response(req["requests_id"], runner(req["content"], spark))
+            spark.catalog.clearCache()
+        except Exception as ex:
+            _send_error(req["requests_id"], ex)
+            spark.catalog.clearCache()
+        finally:
+            _send_response(req["requests_id"], {"finally":True})
+            spark.catalog.clearCache()
+    spark.stop()
+
+event_loop()
