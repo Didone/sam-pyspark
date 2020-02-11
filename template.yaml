@@ -14,6 +14,8 @@ Parameters:
     Default: INFO
 Globals:
   Function:
+    MemorySize: 512
+    Timeout: 900
     Tags:
       AppName: pyspark
 
@@ -37,18 +39,31 @@ Resources:
         - python2.7
       RetentionPolicy: Delete
 
-  SparkFunction:
+  HelloFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Description: Spark Lambda Runtime
-      CodeUri: functions
+      Description: Hello World with spark context
+      CodeUri: functions/HelloFunction
       Handler: job.run
       Runtime: python2.7
-      Timeout: 900
       Layers:
         - !Ref SparkRuntime
         - !Ref SparkDrivers
-      MemorySize: 512
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          LOG_LEVEL: !Ref LogLevel
+  PaisesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Read Files from S3 bucket
+      CodeUri: functions/PaisesFunction
+      Handler: job.run
+      Runtime: python2.7
+      Layers:
+        - !Ref SparkRuntime
+        - !Ref SparkDrivers
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonS3FullAccess
