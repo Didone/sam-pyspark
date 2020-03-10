@@ -38,7 +38,10 @@ sam package --template template.tmp --output-template-file packaged.yaml --s3-bu
 
 ## Deploy
 
-You can use the AWS *Cloudformation* to manage your deployments as **Application Stacks** using the [packaged.yaml](packaged.yaml) file
+```sh
+sam deploy --guided
+```
+or you can use the AWS *Cloudformation* to manage your deployments as **Application Stacks** using the [packaged.yaml](packaged.yaml) file
 
 ```sh
 # Create stack

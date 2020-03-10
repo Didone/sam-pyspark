@@ -38,27 +38,12 @@ Resources:
       CompatibleRuntimes:
         - python2.7
       RetentionPolicy: Delete
-
+  ############# Your functions #############
   HelloFunction:
     Type: AWS::Serverless::Function
     Properties:
       Description: Hello World with spark context
       CodeUri: functions/HelloFunction
-      Handler: job.run
-      Runtime: python2.7
-      Layers:
-        - !Ref SparkRuntime
-        - !Ref SparkDrivers
-      Policies:
-        - AWSLambdaBasicExecutionRole
-      Environment:
-        Variables:
-          LOG_LEVEL: !Ref LogLevel
-  PaisesFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: Read Files from S3 bucket
-      CodeUri: functions/PaisesFunction
       Handler: job.run
       Runtime: python2.7
       Layers:

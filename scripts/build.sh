@@ -27,7 +27,7 @@ sed 's+ python2.7+ provided+g' template.yaml > template.tmp
 sam package \
     --template template.tmp \
     --output-template-file packaged.yaml \
-    --s3-bucket $DEPLOY_BUCKET
+    --s3-bucket didone-spark-sam
 #Deploy
 aws cloudformation create-stack \
     --stack-name $APP_NAME \
@@ -35,3 +35,14 @@ aws cloudformation create-stack \
     --tags Key=project,Value=pyspark \
     --parameters ParameterKey=AccessKey,ParameterValue=$AWS_ACCESS_KEY_ID ParameterKey=SecretKey,ParameterValue=$AWS_SECRET_ACCESS_KEY\
     --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND"
+
+# DEPLOY_BUCKET=<<nome_do_seu_bucket>>
+DEPLOY_BUCKET="didone-spark-sam"
+aws s3 mb "s3://${DEPLOY_BUCKET}"
+sam build HelloFunction
+sed 's+ python2.7+ provided+g' template.yaml > template.tmp
+sam package \
+    --template template.tmp \
+    --output-template-file packaged.yaml \
+    --s3-bucket ${DEPLOY_BUCKET}
+sam deploy --template packaged.yaml --guided

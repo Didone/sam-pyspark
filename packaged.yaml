@@ -41,7 +41,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: Hello World with spark context
-      CodeUri: s3://didone-spark-sam/fe8a836aaf5858cbe447c89b52c8a3f1
+      CodeUri: s3://didone-spark-sam/07b3fa1d7498bddc3ebadbcb24aa6e7e
       Handler: job.run
       Runtime: provided
       Layers:
@@ -53,24 +53,3 @@ Resources:
         Variables:
           LOG_LEVEL:
             Ref: LogLevel
-  PaisesFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: Read Files from S3 bucket
-      CodeUri: s3://didone-spark-sam/c1219daa3f3b05ebf26dc0bc6637b709
-      Handler: job.run
-      Runtime: provided
-      Layers:
-      - Ref: SparkRuntime
-      - Ref: SparkDrivers
-      Policies:
-      - AWSLambdaBasicExecutionRole
-      - AmazonS3FullAccess
-      Environment:
-        Variables:
-          LOG_LEVEL:
-            Ref: LogLevel
-          ACCESS_KEY:
-            Ref: AccessKey
-          SECRET_KEY:
-            Ref: SecretKey
